@@ -1235,7 +1235,7 @@ function loadFeedback() {
             <div class="status-group-body">
                 ${count === 0 ? `<p style="color:#5f6368; text-align:center; padding:12px;">${group.emptyMsg}</p>` :
                 items.map(s => `
-                <div class="status-group-item" onclick="showSuggestionDetail('${s.id}')">
+                <div class="status-group-item">
                     <div class="sgi-meta">
                         <span class="tag type">${s.suggestion_type}</span>
                         <span class="tag emp">${s.employee_type}</span>
@@ -1245,6 +1245,11 @@ function loadFeedback() {
                     <div class="sgi-text">${s.original_text.substring(0, 120)}${s.original_text.length > 120 ? '...' : ''}</div>
                     ${s.landing_desc ? `<div class="sgi-landing">落地措施: ${s.landing_desc.substring(0, 80)}${s.landing_desc.length > 80 ? '...' : ''}</div>` : ''}
                     ${s.effect_metrics ? `<div style="font-size:12px; color:var(--primary); margin-top:2px;">效果: ${s.effect_metrics}</div>` : ''}
+                    <div class="suggestion-actions" style="margin-top:6px;">
+                        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); toggleFbTimeline('${s.id}', this)">🕐 时间线</button>
+                        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); showSuggestionDetail('${s.id}')">📄 详情</button>
+                    </div>
+                    <div id="fb-tl-${s.id}" style="display:none; margin-top:8px;">${renderTimeline(s)}</div>
                 </div>`).join('')}
             </div>
         </div>`;
@@ -1255,6 +1260,14 @@ function loadFeedback() {
 
 function toggleStatusGroup(key) {
     document.getElementById('sg-' + key).classList.toggle('expanded');
+}
+
+function toggleFbTimeline(id, btn) {
+    const box = document.getElementById('fb-tl-' + id);
+    if (!box) return;
+    const shown = box.style.display !== 'none';
+    box.style.display = shown ? 'none' : 'block';
+    btn.textContent = shown ? '🕐 时间线' : '▲ 收起时间线';
 }
 
 // ===== 初始化 =====
