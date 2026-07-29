@@ -1158,18 +1158,18 @@ function showSuggestionDetail(id) {
 
 function renderTimeline(s) {
     const base = new Date(s.created_at || Date.now());
-    const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    const add = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+    const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+    const addMin = (d, mins) => { const x = new Date(d); x.setMinutes(x.getMinutes() + mins); return x; };
     const nodes = [
         { label: '提交建议', date: fmt(base), state: 'done' },
-        { label: 'AI 提炼与打标', date: fmt(add(base,1)), state: 'done' },
-        { label: '可行性分析', date: fmt(add(base,2)), state: 'done' },
-        { label: '领导决策', date: fmt(add(base,3)), state: (s.adopt_status && s.adopt_status!=='pending') ? 'done' : 'current' },
+        { label: 'AI 提炼与打标', date: fmt(addMin(base, 3)), state: 'done' },
+        { label: '可行性分析', date: fmt(addMin(base, 8)), state: 'done' },
+        { label: '领导决策', date: fmt(addMin(base, 25)), state: (s.adopt_status && s.adopt_status!=='pending') ? 'done' : 'current' },
     ];
     if (s.adopt_status && s.adopt_status !== 'pending') {
         const done = s.progress_status === '已完成';
-        nodes.push({ label: s.adopt_status==='已采纳' ? '纳入反馈追踪 / 落地中' : '暂不纳入', date: fmt(add(base,4)), state: done ? 'done' : 'current' });
-        if (done) nodes.push({ label: '已完成', date: fmt(add(base,10)), state: 'done' });
+        nodes.push({ label: s.adopt_status==='已采纳' ? '纳入反馈追踪 / 落地中' : '暂不纳入', date: fmt(addMin(base, 40)), state: done ? 'done' : 'current' });
+        if (done) nodes.push({ label: '已完成', date: fmt(addMin(base, 90)), state: 'done' });
     }
     return `<div class="timeline">` + nodes.map(n => `
         <div class="timeline-item ${n.state}">
