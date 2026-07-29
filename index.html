@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>北新思汇</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+/* 北新思汇 - 央企风格样式 */
+:root {
+    --primary: #B5383B;          /* 砖红色 */
+    --primary-dark: #8B2E31;     /* 深砖红 */
+    --primary-light: #F5E6E7;    /* 浅砖红背景 */
+    --success: #2E7D32;          /* 深绿 */
+    --success-light: #E8F5E9;
+    --warning: #F57F17;          /* 橙黄 */
+    --warning-light: #FFF8E1;
+    --danger: #C62828;           /* 深红 */
+    --danger-light: #FFEBEE;
+    --text: #1A1A1A;             /* 纯黑 */
+    --text-secondary: #555555;
+    --border: #D0D0D0;
+    --bg: #F5F5F5;               /* 浅灰 */
+    --card-bg: #FFFFFF;
+    --shadow: 0 1px 4px rgba(0,0,0,0.08);
+    --radius: 6px;
+    --gold: #C9A44A;             /* 央企金色点缀 */
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Microsoft YaHei', 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+/* 导航 - 央企庄重风格 */
+.nav { background: var(--text); color: white; padding: 0 32px; display: flex; align-items: center; height: 60px; gap: 24px; position: sticky; top: 0; z-index: 100; border-bottom: 3px solid var(--primary); }
+.nav-brand { display: flex; flex-direction: column; align-items: flex-start; margin-right: 12px; }
+.nav-logo { font-size: 22px; font-weight: 700; color: #FFFFFF; letter-spacing: 4px; line-height: 1.2; }
+.nav-subtitle { font-size: 11px; color: rgba(255,255,255,0.6); letter-spacing: 2px; margin-top: 2px; }
+.nav-tabs { display: flex; gap: 4px; margin-left: 20px; }
+.nav-tab { padding: 8px 18px; border-radius: 4px; cursor: pointer; font-size: 14px; background: transparent; color: rgba(255,255,255,0.7); transition: all 0.2s; font-weight: 400; }
+.nav-tab:hover { background: rgba(255,255,255,0.1); color: white; }
+.nav-tab.active { background: var(--primary); color: white; font-weight: 500; }
+
+.container { max-width: 1200px; margin: 24px auto; padding: 0 24px; }
+.page { display: none; }
+.page.active { display: block; }
+
+.card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; border: 1px solid var(--border); }
+.card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text); border-left: 3px solid var(--primary); padding-left: 10px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: var(--card-bg); border-radius: var(--radius); padding: 16px; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.stat-value { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+.stat-label { font-size: 13px; color: var(--text-secondary); }
+.stat-card.primary .stat-value { color: var(--primary); }
+.stat-card.success .stat-value { color: var(--success); }
+.stat-card.warning .stat-value { color: var(--warning); }
+.stat-card.danger .stat-value { color: var(--danger); }
+
+.coverage-gauge { display: flex; align-items: center; justify-content: center; gap: 40px; padding: 24px; }
+.gauge-circle { width: 140px; height: 140px; border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; }
+.gauge-circle svg { width: 140px; height: 140px; }
+.gauge-value { position: absolute; font-size: 24px; font-weight: 700; }
+.gauge-label { font-size: 13px; color: var(--text-secondary); text-align: center; margin-top: 4px; }
+
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.chart-container { background: var(--card-bg); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.chart-container canvas { max-height: 280px; }
+
+.upload-zone { border: 2px dashed var(--primary); border-radius: var(--radius); padding: 40px; text-align: center; background: var(--primary-light); transition: all 0.3s; cursor: pointer; }
+.upload-zone:hover { border-color: var(--primary-dark); background: #F2D2D3; }
+.upload-zone .icon { font-size: 48px; color: var(--primary); margin-bottom: 12px; }
+.upload-zone h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
+.upload-zone p { color: var(--text-secondary); font-size: 14px; }
+
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: var(--text-secondary); }
+.form-input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+.form-input:focus { border-color: var(--primary); }
+.form-select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; background: white; outline: none; }
+
+.pipeline-steps { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 24px 0; padding: 20px; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
+.pipeline-step { display: flex; align-items: center; gap: 8px; }
+.pipeline-step .step-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: var(--border); color: var(--text-secondary); }
+.pipeline-step.active .step-circle { background: var(--primary); color: white; }
+.pipeline-step.done .step-circle { background: var(--success); color: white; }
+.pipeline-step .step-text { font-size: 13px; color: var(--text-secondary); }
+.pipeline-step.active .step-text, .pipeline-step.done .step-text { color: var(--text); font-weight: 500; }
+.pipeline-arrow { color: var(--border); font-size: 20px; }
+
+.filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.filter-bar .form-select { width: auto; min-width: 140px; }
+.filter-bar .form-input { flex: 1; min-width: 180px; }
+.suggestion-item { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; background: var(--card-bg); transition: all 0.2s; cursor: pointer; }
+.suggestion-item:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(181,56,59,0.15); }
+.suggestion-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.suggestion-text { font-size: 14px; line-height: 1.6; margin-bottom: 8px; }
+.suggestion-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+.tag.type { background: var(--primary-light); color: var(--primary); }
+.tag.emp { background: #FFF3E0; color: #BF360C; }
+.tag.status-adopted { background: var(--success-light); color: var(--success); }
+.tag.status-pending { background: var(--warning-light); color: #D84315; }
+.tag.status-rejected { background: var(--danger-light); color: var(--danger); }
+.tag.dept { background: #E0F2F1; color: #00695C; }
+.tag.priority { background: #FFF8E1; color: #F57F17; }
+
+.detail-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; }
+.detail-overlay.show { display: flex; }
+.detail-panel { background: white; border-radius: var(--radius); max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; padding: 24px; border-top: 3px solid var(--primary); }
+.detail-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); }
+.detail-flow { display: flex; gap: 4px; margin-bottom: 16px; align-items: center; }
+.flow-node { padding: 4px 10px; border-radius: 4px; font-size: 12px; background: var(--bg); color: var(--text-secondary); }
+.flow-node.done { background: var(--success-light); color: var(--success); }
+.flow-node.current { background: var(--primary-light); color: var(--primary); }
+.flow-arrow { color: var(--border); }
+.detail-section { margin-bottom: 16px; padding: 16px; background: var(--bg); border-radius: var(--radius); border-left: 2px solid var(--primary); }
+.detail-section h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--primary); }
+
+.feedback-form { display: grid; gap: 12px; }
+.feedback-form .form-group { margin-bottom: 0; }
+
+.status-group { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 12px; border: 1px solid var(--border); overflow: hidden; }
+.status-group-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; cursor: pointer; transition: background 0.2s; }
+.status-group-header:hover { background: var(--bg); }
+.status-group-header .sg-count { font-size: 13px; font-weight: 600; padding: 2px 10px; border-radius: 4px; }
+.status-group-header .sg-label { font-size: 15px; font-weight: 600; }
+.status-group-header .sg-icon { font-size: 20px; margin-right: 8px; }
+.status-group-header .sg-arrow { font-size: 14px; color: var(--text-secondary); transition: transform 0.2s; }
+.status-group.expanded .sg-arrow { transform: rotate(90deg); }
+.status-group-body { display: none; padding: 0 20px 16px; }
+.status-group.expanded .status-group-body { display: block; }
+.status-group-item { padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+.status-group-item:hover { background: var(--primary-light); margin: 0 -20px; padding: 12px 20px; }
+.status-group-item:last-child { border-bottom: none; }
+.status-group-item .sgi-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+.status-group-item .sgi-text { font-size: 14px; line-height: 1.5; }
+.status-group-item .sgi-info { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.status-group-item .sgi-landing { font-size: 12px; color: var(--success); margin-top: 2px; }
+.status-group.adopted .status-group-header { border-left: 4px solid var(--success); }
+.status-group.adopted .sg-count { background: var(--success-light); color: var(--success); }
+.status-group.in-progress .status-group-header { border-left: 4px solid var(--primary); }
+.status-group.in-progress .sg-count { background: var(--primary-light); color: var(--primary); }
+.status-group.completed .status-group-header { border-left: 4px solid var(--gold); }
+.status-group.completed .sg-count { background: #FFF8E1; color: var(--gold); }
+.status-group.rejected .status-group-header { border-left: 4px solid var(--danger); }
+.status-group.rejected .sg-count { background: var(--danger-light); color: var(--danger); }
+
+.btn { padding: 8px 16px; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-success { background: var(--success); color: white; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+
+.dept-bar { display: flex; align-items: center; margin-bottom: 12px; gap: 12px; }
+.dept-name { font-size: 14px; font-weight: 500; min-width: 100px; }
+.dept-progress { flex: 1; height: 24px; background: var(--bg); border-radius: 4px; overflow: hidden; display: flex; }
+.dept-progress .bar { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
+.dept-progress .bar.adopted { background: var(--success); color: white; }
+.dept-progress .bar.pending { background: var(--warning); color: white; }
+.dept-progress .bar.rejected { background: var(--danger); color: white; }
+.dept-progress .bar.remaining { background: var(--border); color: var(--text-secondary); }
+
+.toast { position: fixed; top: 70px; right: 24px; background: var(--text); color: white; padding: 12px 24px; border-radius: var(--radius); font-size: 14px; z-index: 300; display: none; box-shadow: var(--shadow); border-left: 4px solid var(--primary); }
+.toast.show { display: block; animation: slideIn 0.3s ease; }
+@keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--primary); transition: width 0.3s; border-radius: 2px; }
+
+@media (max-width: 768px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .nav-tabs { gap: 2px; }
+    .nav-tab { padding: 6px 10px; font-size: 13px; }
+    .nav-logo { font-size: 18px; letter-spacing: 2px; }
+    .nav-subtitle { display: none; }
+    .filter-bar { flex-direction: column; }
+    .filter-bar .form-input { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<nav class="nav">
+    <div class="nav-brand">
+        <div class="nav-logo">北新思汇</div>
+        <div class="nav-subtitle">员工总结 · 智慧汇聚</div>
+    </div>
+    <div class="nav-tabs">
+        <div class="nav-tab active" data-page="dashboard">📊 仪表盘</div>
+        <div class="nav-tab" data-page="upload">📤 上传文件</div>
+        <div class="nav-tab" data-page="suggestions">📋 建议列表</div>
+        <div class="nav-tab" data-page="feedback">💬 反馈追踪</div>
+    </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- ========== 仪表盘 ========== -->
+<div class="container page active" id="page-dashboard">
+    <div class="card">
+        <div class="card-title">全局覆盖率</div>
+        <div class="stats-grid" id="coverage-stats"></div>
+    </div>
+    <div class="card">
+        <div class="card-title">采纳率仪表盘</div>
+        <div class="coverage-gauge">
+            <div>
+                <div class="gauge-circle" id="coverage-gauge">
+                    <svg viewBox="0 0 140 140">
+                        <circle cx="70" cy="70" r="60" fill="none" stroke="#dadce0" stroke-width="10"/>
+                        <circle cx="70" cy="70" r="60" fill="none" stroke="#B5383B" stroke-width="10"
+                                stroke-dasharray="377" stroke-dashoffset="377" id="coverage-arc"
+                                transform="rotate(-90 70 70)" stroke-linecap="round"/>
+                    </svg>
+                    <div class="gauge-value" id="coverage-value">0%</div>
+                </div>
+                <div class="gauge-label">建议采纳率</div>
+            </div>
+            <div>
+                <div class="gauge-circle" id="completion-gauge">
+                    <svg viewBox="0 0 140 140">
+                        <circle cx="70" cy="70" r="60" fill="none" stroke="#dadce0" stroke-width="10"/>
+                        <circle cx="70" cy="70" r="60" fill="none" stroke="#1A1A1A" stroke-width="10"
+                                stroke-dasharray="377" stroke-dashoffset="377" id="completion-arc"
+                                transform="rotate(-90 70 70)" stroke-linecap="round"/>
+                    </svg>
+                    <div class="gauge-value" id="completion-value">0%</div>
+                </div>
+                <div class="gauge-label">落地完成率</div>
+            </div>
+        </div>
+    </div>
+    <div class="chart-grid">
+        <div class="chart-container">
+            <div class="card-title">五类人采纳率对比</div>
+            <canvas id="employee-type-chart"></canvas>
+        </div>
+        <div class="chart-container">
+            <div class="card-title">建议类型分布</div>
+            <canvas id="suggestion-type-chart"></canvas>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-title">部门响应效率</div>
+        <div id="dept-response-bars"></div>
+    </div>
+</div>
+
+<!-- ========== 上传文件 ========== -->
+<div class="container page" id="page-upload">
+    <div class="pipeline-steps" id="upload-pipeline-steps">
+        <div class="pipeline-step" id="upload-step1"><div class="step-circle">1</div><div class="step-text">提炼建议</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" id="upload-step2"><div class="step-circle">2</div><div class="step-text">分类打标</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" id="upload-step3"><div class="step-circle">3</div><div class="step-text">可行性分析</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" id="upload-step4"><div class="step-circle">4</div><div class="step-text">落地反馈</div></div>
+    </div>
+    <div class="card">
+        <div class="card-title">上传员工总结文件</div>
+        <p style="color:var(--text-secondary); font-size:14px; margin-bottom:16px;">拖拽或点击选择 Word（.docx）或 PDF 文件，系统将自动提取员工姓名和部门信息，并走完四步闭环流程：提炼建议 → 分类打标 → 可行性分析 → 初始化反馈记录。</p>
+        
+        <!-- 拖拽上传区域 -->
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+            <div class="icon">📄</div>
+            <h3>拖拽或点击上传文件</h3>
+            <p>支持 .docx / .pdf 格式，系统将自动识别文件中的姓名和部门</p>
+            <input type="file" id="file-input" accept=".docx,.pdf" style="display:none;" onchange="handleFileSelect(this)">
+        </div>
+        <div id="selected-file-info" style="display:none; margin-top:12px; padding:12px; background:var(--primary-light); border-radius:var(--radius); border-left:3px solid var(--primary);">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:18px;">📎</span>
+                <strong id="selected-file-name">未选择文件</strong>
+                <span id="selected-file-size" style="font-size:12px; color:var(--text-secondary);"></span>
+                <span id="auto-extract-status" style="font-size:12px; color:var(--success); display:none;">🤖 已自动识别</span>
+            </div>
+        </div>
+
+        <div style="margin-top:16px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="form-group"><label>员工姓名 <span style="font-size:11px;color:var(--text-secondary);">（自动提取，可手动修改）</span></label><input class="form-input" id="emp-name" placeholder="上传文件后将自动识别"></div>
+            <div class="form-group"><label>所属部门 <span style="font-size:11px;color:var(--text-secondary);">（自动提取，可手动修改）</span></label><select class="form-select" id="emp-dept"><option value="">上传文件后将自动识别</option><option value="技术部">技术部</option><option value="产品部">产品部</option><option value="运营部">运营部</option><option value="研发部">研发部</option><option value="市场部">市场部</option><option value="人力资源部">人力资源部</option><option value="财务部">财务部</option><option value="客服部">客服部</option><option value="行政部">行政部</option></select></div>
+            <div class="form-group"><label>员工类型（五类人）</label><select class="form-select" id="emp-type"><option value="新入职员工">新入职员工</option><option value="核心骨干">核心骨干</option><option value="一线执行">一线执行</option><option value="管理干部">管理干部</option><option value="专业人才">专业人才</option></select></div>
+            <div class="form-group"><label>总结周期</label><select class="form-select" id="emp-period"><option value="2026-Q1">2026-Q1</option><option value="2026-Q2">2026-Q2</option><option value="2026-Q3">2026-Q3</option><option value="2026-Q4">2026-Q4</option></select></div>
+        </div>
+        <div style="margin-top:16px; text-align:center;">
+            <button class="btn btn-primary" id="start-process-btn" style="padding:10px 32px; font-size:16px;" disabled>▶ 开始处理</button>
+        </div>
+        <div id="upload-result" style="margin-top:16px;"></div>
+    </div>
+</div>
+
+<!-- ========== 建议列表 ========== -->
+<div class="container page" id="page-suggestions">
+    <div class="card">
+        <div class="card-title">建议筛选</div>
+        <div class="filter-bar">
+            <input class="form-input" id="filter-search" placeholder="🔍 关键词搜索（建议内容、员工姓名、部门等）" style="flex:1; min-width:200px;" oninput="loadSuggestions()">
+            <select class="form-select" id="filter-type" onchange="loadSuggestions()"><option value="">全部建议类型</option><option value="流程改进">流程改进</option><option value="技术创新">技术创新</option><option value="管理优化">管理优化</option><option value="文化建议">文化建议</option><option value="业务方向">业务方向</option></select>
+            <select class="form-select" id="filter-emp-type" onchange="loadSuggestions()"><option value="">全部员工类型</option><option value="新入职员工">新入职员工</option><option value="核心骨干">核心骨干</option><option value="一线执行">一线执行</option><option value="管理干部">管理干部</option><option value="专业人才">专业人才</option></select>
+            <select class="form-select" id="filter-status" onchange="loadSuggestions()"><option value="">全部状态</option><option value="已采纳">已采纳</option><option value="暂缓">暂缓</option><option value="不可行">不可行</option><option value="pending">待处理</option></select>
+            <button class="btn btn-outline btn-sm" onclick="exportSuggestions()">📥 导出Excel</button>
+        </div>
+    </div>
+    <div id="suggestions-list"></div>
+</div>
+
+<!-- ========== 反馈追踪 ========== -->
+<div class="container page" id="page-feedback">
+    <div class="card"><div class="card-title">建议反馈追踪</div><p style="color:#5f6368; font-size:14px;">点击任意建议查看全链路详情，部门负责人可在此提交采纳状态与落地进展。</p></div>
+    <div class="card"><div class="card-title">反馈统计</div><div class="stats-grid" id="feedback-stats"></div></div>
+    <div id="feedback-status-groups"></div>
+</div>
+
+<!-- 建议详情弹窗 -->
+<div class="detail-overlay" id="detail-overlay">
+    <div class="detail-panel" style="position:relative;">
+        <button class="detail-close" onclick="closeDetail()">✕</button>
+        <div id="detail-content"></div>
+    </div>
+</div>
+
+<script>
+/* 北新思汇 - 静态演示版 - 所有数据内嵌 */
+
+// ===== 内嵌数据 =====
+const MOCK_DATA = {
+    coverage: {"total":15,"adopted":8,"pending":4,"rejected":3,"in_progress":3,"completed":6,"coverage_rate":53.3,"completion_rate":75.0},
+    employeeTypes: [{"employee_type":"新入职员工","total":3,"adopted":2,"adopt_rate":66.7},{"employee_type":"核心骨干","total":3,"adopted":1,"adopt_rate":33.3},{"employee_type":"一线执行","total":3,"adopted":3,"adopt_rate":100.0},{"employee_type":"管理干部","total":3,"adopted":1,"adopt_rate":33.3},{"employee_type":"专业人才","total":3,"adopted":1,"adopt_rate":33.3}],
+    suggestionTypes: [{"suggestion_type":"流程改进","total":3,"adopted":2,"adopt_rate":66.7},{"suggestion_type":"技术创新","total":4,"adopted":3,"adopt_rate":75.0},{"suggestion_type":"管理优化","total":3,"adopted":0,"adopt_rate":0.0},{"suggestion_type":"文化建议","total":4,"adopted":3,"adopt_rate":75.0},{"suggestion_type":"业务方向","total":1,"adopted":0,"adopt_rate":0.0}],
+    deptResponse: [{"routed_dept":"产品部","total":2,"responded":2,"adopted":1,"response_rate":100.0,"adopt_rate":50.0},{"routed_dept":"人力资源部","total":4,"responded":4,"adopted":1,"response_rate":100.0,"adopt_rate":25.0},{"routed_dept":"客服部","total":1,"responded":1,"adopted":0,"response_rate":100.0,"adopt_rate":0.0},{"routed_dept":"市场部","total":1,"responded":1,"adopted":1,"response_rate":100.0,"adopt_rate":100.0},{"routed_dept":"技术部","total":1,"responded":1,"adopted":0,"response_rate":100.0,"adopt_rate":0.0},{"routed_dept":"研发部","total":2,"responded":2,"adopted":1,"response_rate":100.0,"adopt_rate":50.0},{"routed_dept":"行政部","total":1,"responded":1,"adopted":1,"response_rate":100.0,"adopt_rate":100.0},{"routed_dept":"财务部","total":1,"responded":1,"adopted":1,"response_rate":100.0,"adopt_rate":100.0},{"routed_dept":"运营部","total":2,"responded":2,"adopted":2,"response_rate":100.0,"adopt_rate":100.0}],
+    pipeline: {"step1_summaries":0,"step2_suggestions":15,"step3_feasibility":15,"step4_feedback_with_status":15,"pipeline_complete":true},
+    suggestions: [{"id":"S001","summary_id":"SUM001","employee_id":"E001","employee_name":"张明","dept":"技术部","employee_type":"新入职员工","original_text":"建议完善新员工入职培训体系，目前培训内容过于笼统，缺乏针对具体岗位的实操指导","original_excerpt":"在入职的第一个月，我发现培训主要是一些通用性的公司介绍和规章制度讲解...","suggestion_type":"流程改进","suggestion_subtype":"培训发展","period":"2026-Q1","page_number":2,"created_at":"2026-07-23T11:21:37","adopt_status":"暂缓","progress_status":"执行中","landing_desc":"正在设计新培训大纲","effect_metrics":"培训满意度待评估","tech_feasibility":"中","priority_score":70.0,"routed_dept":"人力资源部"},{"id":"S002","summary_id":"SUM001","employee_id":"E002","employee_name":"李芳","dept":"产品部","employee_type":"核心骨干","original_text":"建议建立跨部门协作的快速响应机制，当前产品需求评审周期过长","original_excerpt":"作为产品核心成员，我发现很多需求评审需要等2-3周才能安排上...","suggestion_type":"流程改进","suggestion_subtype":"协作机制优化","period":"2026-Q1","page_number":3,"created_at":"2026-07-23T11:21:37","adopt_status":"已采纳","progress_status":"已完成","landing_desc":"建立双周评审排期机制","effect_metrics":"评审效率提升60%","tech_feasibility":"高","priority_score":85.0,"routed_dept":"产品部"},{"id":"S003","summary_id":"SUM002","employee_id":"E003","employee_name":"王磊","dept":"运营部","employee_type":"一线执行","original_text":"建议引入自动化报表生成工具，目前每月手工整理运营数据耗费大量时间","original_excerpt":"每个月月底我需要花2-3天时间手工整理各种运营数据做成报表...","suggestion_type":"技术创新","suggestion_subtype":"自动化需求","period":"2026-Q1","page_number":5,"created_at":"2026-07-23T11:21:37","adopt_status":"已采纳","progress_status":"已完成","landing_desc":"引入BI工具完成运营报表自动化","effect_metrics":"报表制作时间从3天缩短至0.5天","tech_feasibility":"高","priority_score":80.0,"routed_dept":"运营部"},{"id":"S004","summary_id":"SUM002","employee_id":"E004","employee_name":"陈颖","dept":"人力资源部","employee_type":"管理干部","original_text":"建议优化绩效考核指标体系，当前KPI过于侧重量化指标","original_excerpt":"现有的绩效评估体系主要看数字指标，但很多时候团队协作和创新能力也很重要...","suggestion_type":"管理优化","suggestion_subtype":"绩效考核","period":"2026-Q1","page_number":4,"created_at":"2026-07-23T11:21:37","adopt_status":"暂缓","progress_status":"计划中","landing_desc":"正在与各部门调研指标需求","effect_metrics":"","tech_feasibility":"中","priority_score":60.0,"routed_dept":"人力资源部"},{"id":"S005","summary_id":"SUM003","employee_id":"E005","employee_name":"刘洋","dept":"研发部","employee_type":"专业人才","original_text":"建议增加技术分享会的频率和深度，目前季度一次的技术分享内容偏浅","original_excerpt":"我觉得技术分享应该更深入一些，目前季度一次太少了...","suggestion_type":"文化建议","suggestion_subtype":"培训发展","period":"2026-Q1","page_number":6,"created_at":"2026-07-23T11:21:37","adopt_status":"已采纳","progress_status":"已完成","landing_desc":"改为每月一次技术分享","effect_metrics":"分享参与率从30%提升至75%","tech_feasibility":"高","priority_score":90.0,"routed_dept":"研发部"},{"id":"S006","summary_id":"SUM003","employee_id":"E006","employee_name":"赵雪","dept":"市场部","employee_type":"一线执行","original_text":"建议统一市场素材管理平台，当前素材散落在各处，查找效率低","original_excerpt":"每次做营销方案都要到处找素材，有的在网盘有的在邮箱...","suggestion_type":"技术创新","suggestion_subtype":"工具/平台建议","period":"2026-Q1","page_number":3,"created_at":"2026-07-23T11:21:37","adopt_status":"已采纳","progress_status":"执行中","landing_desc":"搭建素材管理平台","effect_metrics":"","tech_feasibility":"高","priority_score":75.0,"routed_dept":"市场部"},{"id":"S007","summary_id":"SUM004","employee_id":"E007","employee_name":"孙健","dept":"技术部","employee_type":"核心骨干","original_text":"建议建立技术决策委员会，重大技术选型应有正式评估流程","original_excerpt":"目前很多技术选型决策都是负责人一个人决定...","suggestion_type":"管理优化","suggestion_subtype":"团队管理","period":"2026-Q2","page_number":2,"created_at":"2026-07-23T11:21:37","adopt_status":"不可行","progress_status":"pending","landing_desc":"管理层暂未批准技术决策委员会设立","effect_metrics":"","tech_feasibility":"中","priority_score":65.0,"routed_dept":"技术部"},{"id":"S008","summary_id":"SUM004","employee_id":"E008","employee_name":"周琳","dept":"财务部","employee_type":"管理干部","original_text":"建议简化报销审批流程，当前流程节点过多，一笔报销需要5-7个工作日","original_excerpt":"员工普遍反映报销流程太长，5个审批节点...","suggestion_type":"流程改进","suggestion_subtype":"审批流程简化","period":"2026-Q2","page_number":4,"created_at":"2026-07-23T11:21:37","adopt_status":"已采纳","progress_status":"已完成","landing_desc":"精简为3个审批节点","effect_metrics":"报销处理速度提升70%","tech_feasibility":"高","priority_score":92.0,"routed_dept":"财务部"},{"id":"S009","summary_id":"SUM005","employee_id":"E009","employee_name":"吴涛","dept":"研发部","employee_type":"新入职员工","original_text":"建议为新员工配备一对一导师，目前导师制度形同虚设","original_excerpt":"入职时说有导师制度，但我的导师太忙了...","suggestion_type":"文化建议","suggestion_subtype":"工作氛围","period":"2026-Q2","page_number":2,"created_at":"2026-07-23T11:21:37","adopt_status":"已采纳","progress_status":"已完成","landing_desc":"重新激活导师制度","effect_metrics":"新员工满意度从65%升至88%","tech_feasibility":"高","priority_score":80.0,"routed_dept":"人力资源部"},{"id":"S010","summary_id":"SUM005","employee_id":"E010","employee_name":"郑薇","dept":"客服部","employee_type":"专业人才","original_text":"建议升级客服系统为智能工单分发模式，当前手工分配效率低且容易遗漏","original_excerpt":"我们每天要手动分配几十个客服工单...","suggestion_type":"技术创新","suggestion_subtype":"自动化需求","period":"2026-Q2","page_number":5,"created_at":"2026-07-23T11:21:37","adopt_status":"暂缓","progress_status":"计划中","landing_desc":"正在评估智能客服系统方案","effect_metrics":"","tech_feasibility":"高","priority_score":78.0,"routed_dept":"客服部"},{"id":"S011","summary_id":"SUM006","employee_id":"E001","employee_name":"张明","dept":"技术部","employee_type":"新入职员工","original_text":"建议改善办公区饮水设施和休息区配置，提升工作舒适度","original_excerpt":"办公区的饮水机经常坏，休息区也没什么设施...","suggestion_type":"文化建议","suggestion_subtype":"办公环境","period":"2026-Q2","page_number":7,"created_at":"2026-07-23T11:21:37","adopt_status":"已采纳","progress_status":"已完成","landing_desc":"更换饮水设备，增设休息区沙发","effect_metrics":"员工满意度明显提升","tech_feasibility":"高","priority_score":88.0,"routed_dept":"行政部"},{"id":"S012","summary_id":"SUM006","employee_id":"E003","employee_name":"王磊","dept":"运营部","employee_type":"一线执行","original_text":"建议建立运营数据可视化平台，减少手工Excel操作","original_excerpt":"我们运营团队每天都在Excel里做数据整理和图表...","suggestion_type":"技术创新","suggestion_subtype":"工具/平台建议","period":"2026-Q3","page_number":3,"created_at":"2026-07-23T11:21:37","adopt_status":"已采纳","progress_status":"执行中","landing_desc":"复用BI平台搭建运营可视化模块","effect_metrics":"","tech_feasibility":"高","priority_score":82.0,"routed_dept":"运营部"},{"id":"S013","summary_id":"SUM007","employee_id":"E002","employee_name":"李芳","dept":"产品部","employee_type":"核心骨干","original_text":"建议设立创新孵化机制，给员工10%时间用于自选创新项目","original_excerpt":"像Google的20%时间制度一样...","suggestion_type":"业务方向","suggestion_subtype":"战略思考","period":"2026-Q3","page_number":8,"created_at":"2026-07-23T11:21:37","adopt_status":"不可行","progress_status":"pending","landing_desc":"与现有工时考核制度冲突，管理层未批准","effect_metrics":"","tech_feasibility":"中","priority_score":55.0,"routed_dept":"产品部"},{"id":"S014","summary_id":"SUM007","employee_id":"E004","employee_name":"陈颖","dept":"人力资源部","employee_type":"管理干部","original_text":"建议完善内部轮岗制度，让员工有机会接触不同岗位拓宽视野","original_excerpt":"员工职业发展不应该只有一条线...","suggestion_type":"管理优化","suggestion_subtype":"培训发展","period":"2026-Q3","page_number":5,"created_at":"2026-07-23T11:21:37","adopt_status":"暂缓","progress_status":"计划中","landing_desc":"制度设计阶段","effect_metrics":"","tech_feasibility":"中","priority_score":60.0,"routed_dept":"人力资源部"},{"id":"S015","summary_id":"SUM008","employee_id":"E005","employee_name":"刘洋","dept":"研发部","employee_type":"专业人才","original_text":"建议增加研发团队的技术培训预算，每年至少2次外部高阶技术培训","original_excerpt":"我们研发团队的培训预算太少了...","suggestion_type":"文化建议","suggestion_subtype":"培训发展","period":"2026-Q3","page_number":6,"created_at":"2026-07-23T11:21:37","adopt_status":"不可行","progress_status":"pending","landing_desc":"本年度培训预算已冻结","effect_metrics":"","tech_feasibility":"中","priority_score":65.0,"routed_dept":"研发部"}]
+};
+
+// ===== API 模拟（纯前端，不需要后端） =====
+function api(url) { return Promise.resolve(null); }  // 不使用真实 API
+
+function mockApi(endpoint) {
+    if (endpoint.includes('/dashboard/coverage')) return MOCK_DATA.coverage;
+    if (endpoint.includes('/dashboard/by-employee-type')) return MOCK_DATA.employeeTypes;
+    if (endpoint.includes('/dashboard/by-suggestion-type')) return MOCK_DATA.suggestionTypes;
+    if (endpoint.includes('/dashboard/dept-response')) return MOCK_DATA.deptResponse;
+    if (endpoint.includes('/pipeline/status')) return MOCK_DATA.pipeline;
+    if (endpoint.includes('/suggestions/list')) {
+        let filtered = [...MOCK_DATA.suggestions];
+        const urlObj = new URL('http://dummy' + endpoint);
+        const typeF = urlObj.searchParams.get('type_filter');
+        const empF = urlObj.searchParams.get('employee_type_filter');
+        const statusF = urlObj.searchParams.get('status_filter');
+        if (typeF) filtered = filtered.filter(s => s.suggestion_type === typeF);
+        if (empF) filtered = filtered.filter(s => s.employee_type === empF);
+        if (statusF) filtered = filtered.filter(s => s.adopt_status === statusF);
+        return filtered;
+    }
+    return null;
+}
+
+let charts = {};
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ===== 导航 =====
+document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        const page = tab.dataset.page;
+        document.getElementById('page-' + page).classList.add('active');
+        if (page === 'dashboard') loadDashboard();
+        if (page === 'suggestions') loadSuggestions();
+        if (page === 'feedback') loadFeedback();
+    });
+});
+
+// ===== 仪表盘 =====
+function loadDashboard() {
+    const coverage = mockApi('/api/dashboard/coverage');
+    if (!coverage) return;
+
+    document.getElementById('coverage-stats').innerHTML = `
+        <div class="stat-card primary"><div class="stat-value">${coverage.total}</div><div class="stat-label">总建议数</div></div>
+        <div class="stat-card success"><div class="stat-value">${coverage.adopted}</div><div class="stat-label">已采纳</div></div>
+        <div class="stat-card warning"><div class="stat-value">${coverage.pending}</div><div class="stat-label">暂缓</div></div>
+        <div class="stat-card danger"><div class="stat-value">${coverage.rejected}</div><div class="stat-label">不可行</div></div>
+        <div class="stat-card primary"><div class="stat-value">${coverage.in_progress}</div><div class="stat-label">执行中</div></div>
+        <div class="stat-card success"><div class="stat-value">${coverage.completed}</div><div class="stat-label">已完成</div></div>
+    `;
+
+    const coverageRate = coverage.coverage_rate;
+    const offset1 = 377 - (377 * coverageRate / 100);
+    document.getElementById('coverage-arc').setAttribute('stroke-dashoffset', offset1);
+    document.getElementById('coverage-value').textContent = coverageRate + '%';
+
+    const completionRate = coverage.completion_rate;
+    const offset2 = 377 - (377 * completionRate / 100);
+    document.getElementById('completion-arc').setAttribute('stroke-dashoffset', offset2);
+    document.getElementById('completion-value').textContent = completionRate + '%';
+
+    const empTypes = mockApi('/api/dashboard/by-employee-type');
+    if (empTypes) renderEmployeeTypeChart(empTypes);
+
+    const sgTypes = mockApi('/api/dashboard/by-suggestion-type');
+    if (sgTypes) renderSuggestionTypeChart(sgTypes);
+
+    const deptData = mockApi('/api/dashboard/dept-response');
+    if (deptData) renderDeptResponse(deptData);
+}
+
+function renderEmployeeTypeChart(data) {
+    const ctx = document.getElementById('employee-type-chart');
+    if (charts.empType) charts.empType.destroy();
+    charts.empType = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.employee_type),
+            datasets: [
+                { label: '总建议', data: data.map(d => d.total), backgroundColor: '#B5383B' },
+                { label: '已采纳', data: data.map(d => d.adopted), backgroundColor: '#1A1A1A' },
+            ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+    });
+}
+
+function renderSuggestionTypeChart(data) {
+    const ctx = document.getElementById('suggestion-type-chart');
+    if (charts.sgType) charts.sgType.destroy();
+    charts.sgType = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.map(d => d.suggestion_type),
+            datasets: [{ data: data.map(d => d.total), backgroundColor: ['#B5383B', '#1A1A1A', '#C9A44A', '#555555', '#2E7D32'] }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+}
+
+function renderDeptResponse(data) {
+    const container = document.getElementById('dept-response-bars');
+    let html = '';
+    data.forEach(d => {
+        const adoptedW = d.adopted / d.total * 100;
+        const respondedW = (d.responded - d.adopted) / d.total * 100;
+        const remainingW = 100 - d.responded / d.total * 100;
+        html += `
+        <div class="dept-bar">
+            <div class="dept-name">${d.routed_dept}</div>
+            <div class="dept-progress">
+                <div class="bar adopted" style="width:${adoptedW}%">${d.adopted}采纳</div>
+                <div class="bar pending" style="width:${respondedW}%">${d.responded - d.adopted}暂缓</div>
+                <div class="bar remaining" style="width:${remainingW}%">待响应</div>
+            </div>
+            <span class="rate-badge ${d.adopt_rate >= 60 ? 'high' : d.adopt_rate >= 40 ? 'medium' : 'low'}">${d.adopt_rate}%</span>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+// ===== 文件选择与拖拽上传 =====
+let selectedFile = null;
+
+// 拖拽支持
+const uploadZone = document.getElementById('upload-zone');
+uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.style.borderColor = 'var(--primary-dark)'; uploadZone.style.background = '#F2D2D3'; });
+uploadZone.addEventListener('dragleave', (e) => { e.preventDefault(); uploadZone.style.borderColor = 'var(--primary)'; uploadZone.style.background = 'var(--primary-light)'; });
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.style.borderColor = 'var(--primary)'; uploadZone.style.background = 'var(--primary-light)';
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        const name = files[0].name.toLowerCase();
+        if (name.endsWith('.pdf') || name.endsWith('.docx')) {
+            handleFileSelected(files[0]);
+        } else {
+            showToast('请选择 Word (.docx) 或 PDF 格式的文件');
+        }
+    }
+});
+
+function handleFileSelect(input) {
+    if (input.files && input.files.length > 0) {
+        handleFileSelected(input.files[0]);
+    }
+}
+
+// 模拟从文件名中提取姓名和部门
+const AUTO_EXTRACT_PATTERNS = [
+    { name: '张明远', dept: '技术部' },
+    { name: '李雪琴', dept: '产品部' },
+    { name: '王建国', dept: '运营部' },
+    { name: '陈晓东', dept: '研发部' },
+    { name: '刘芳', dept: '市场部' },
+    { name: '赵铁柱', dept: '人力资源部' },
+    { name: '周莉莉', dept: '财务部' },
+    { name: '吴志强', dept: '客服部' },
+    { name: '郑思远', dept: '行政部' },
+];
+
+function handleFileSelected(file) {
+    selectedFile = file;
+    document.getElementById('selected-file-info').style.display = 'block';
+    document.getElementById('selected-file-name').textContent = file.name;
+    const sizeKB = (file.size / 1024).toFixed(1);
+    const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+    document.getElementById('selected-file-size').textContent = file.size > 1024*1024 ? `${sizeMB} MB` : `${sizeKB} KB`;
+    document.getElementById('start-process-btn').disabled = false;
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    const fileTypeLabel = ext === 'docx' ? 'Word文档' : 'PDF文档';
+
+    document.getElementById('upload-zone').innerHTML = `
+        <div class="icon">✅</div>
+        <h3>文件已选择（${fileTypeLabel}）</h3>
+        <p>${file.name} · 点击更换文件</p>
+        <input type="file" id="file-input" accept=".docx,.pdf" style="display:none;" onchange="handleFileSelect(this)">
+    `;
+
+    // 模拟自动提取姓名和部门（基于文件名 hash 选择）
+    const hash = file.name.split('').reduce((a,c) => a + c.charCodeAt(0), 0);
+    const extract = AUTO_EXTRACT_PATTERNS[hash % AUTO_EXTRACT_PATTERNS.length];
+    document.getElementById('emp-name').value = extract.name;
+    document.getElementById('emp-dept').value = extract.dept;
+    document.getElementById('auto-extract-status').style.display = 'inline';
+    document.getElementById('auto-extract-status').textContent = `🤖 已识别：${extract.name} · ${extract.dept}`;
+
+    showToast(`${fileTypeLabel}已选择，系统已自动识别员工姓名和部门，可手动修改`);
+}
+
+// 模拟建议库（根据员工类型和部门动态生成）
+const SIMULATION_TEMPLATES = {
+    '新入职员工': [
+        { type: '流程改进', subtype: '培训发展', text: '建议完善新员工入职培训体系，增加针对具体岗位的实操指导和跟岗学习环节，目前的入职培训内容过于笼统', excerpt: '在入职的第一个月，我发现培训主要是一些通用性的公司介绍和规章制度讲解...' },
+        { type: '文化建议', subtype: '归属感建设', text: '建议增加新员工与老员工的交流互动活动，如定期举办部门分享会、导师一对一交流等，帮助新员工更快融入团队', excerpt: '入职初期感觉与同事之间的交流机会较少...' },
+    ],
+    '核心骨干': [
+        { type: '流程改进', subtype: '协作机制优化', text: '建议建立跨部门协作的快速响应机制，当前需求评审和项目协调周期过长，影响整体交付效率', excerpt: '作为核心成员，我发现很多跨部门协作需要等较长时间...' },
+        { type: '技术创新', subtype: '架构升级', text: '建议推进核心系统的微服务架构升级，当前单体架构限制了功能模块的独立迭代和扩展能力', excerpt: '目前系统架构已经成为团队效率的瓶颈...' },
+    ],
+    '一线执行': [
+        { type: '技术创新', subtype: '自动化需求', text: '建议引入自动化报表生成工具，目前手工整理运营数据耗费大量时间，影响核心业务的专注度', excerpt: '每个月需要花2-3天时间手工整理各种数据做成报表...' },
+        { type: '业务方向', subtype: '效率提升', text: '建议优化一线执行流程中的审批环节，部分简单操作仍需多层审批，降低了执行效率', excerpt: '日常工作中很多简单的操作也需要走较长的审批流程...' },
+    ],
+    '管理干部': [
+        { type: '管理优化', subtype: '绩效考核', text: '建议优化绩效考核指标体系，当前KPI过于侧重量化指标而忽视了团队协作、创新能力和文化建设等维度', excerpt: '现有的绩效评估体系主要看数字指标，但很多时候协作和创新也很重要...' },
+        { type: '管理优化', subtype: '决策机制', text: '建议建立更透明的决策沟通机制，让团队成员在重大决策前能充分了解背景和参与讨论', excerpt: '团队对部分管理决策的背景和原因了解不够充分...' },
+    ],
+    '专业人才': [
+        { type: '技术创新', subtype: '知识沉淀', text: '建议建立专业知识沉淀与共享平台，当前团队的专业经验分散在个人手中，缺乏系统性的整理和传承机制', excerpt: '很多专业解决方案和经验目前只存在于个人笔记中...' },
+        { type: '文化建议', subtype: '专业成长', text: '建议设立专业人才专项成长计划，包括外部培训资助、技术交流会议参与、专业认证支持等', excerpt: '作为专业技术人员，希望能够有更多的专业成长机会...' },
+    ],
+};
+
+const DEPT_ROUTE_MAP = {
+    '技术部': '研发部', '产品部': '产品部', '运营部': '运营部', '研发部': '研发部',
+    '市场部': '市场部', '人力资源部': '人力资源部', '财务部': '财务部', '客服部': '客服部', '行政部': '行政部',
+};
+
+// 四步流程处理
+document.getElementById('start-process-btn').addEventListener('click', () => {
+    const name = document.getElementById('emp-name').value || '演示员工';
+    const dept = document.getElementById('emp-dept').value;
+    const type = document.getElementById('emp-type').value;
+    const period = document.getElementById('emp-period').value;
+    const resultDiv = document.getElementById('upload-result');
+    const fileName = selectedFile ? selectedFile.name : '演示文件.pdf';
+
+    if (!selectedFile) {
+        showToast('请先选择PDF文件');
+        return;
+    }
+
+    // 获取模拟建议
+    const templates = SIMULATION_TEMPLATES[type] || SIMULATION_TEMPLATES['新入职员工'];
+    const suggestions = templates.map((t, i) => ({
+        id: `NEW_${Date.now()}_${i}`,
+        summary_id: `SUM_NEW_${Date.now()}`,
+        employee_id: `E_NEW_${Date.now()}`,
+        employee_name: name,
+        dept: dept,
+        employee_type: type,
+        original_text: t.text,
+        original_excerpt: t.excerpt,
+        suggestion_type: t.type,
+        suggestion_subtype: t.subtype,
+        period: period,
+        page_number: i + 2,
+        created_at: new Date().toISOString(),
+        adopt_status: 'pending',
+        progress_status: 'pending',
+        landing_desc: '',
+        effect_metrics: '',
+        tech_feasibility: ['高','中','中'][i % 3],
+        cost_estimate: ['低','中','高'][i % 3],
+        priority_score: [85, 70, 60][i % 3],
+        routed_dept: DEPT_ROUTE_MAP[dept] || dept,
+    }));
+
+    // 禁用按钮防止重复点击
+    document.getElementById('start-process-btn').disabled = true;
+
+    // 四步动画
+    const steps = ['upload-step1', 'upload-step2', 'upload-step3', 'upload-step4'];
+    steps.forEach(s => { document.getElementById(s).className = 'pipeline-step'; });
+
+    resultDiv.innerHTML = `
+    <div class="card" style="border:2px solid var(--primary);">
+        <div class="card-title">🔄 正在处理...</div>
+        <div style="padding:16px;">
+            <div id="process-step-display" style="font-size:14px; line-height:2;">
+                <div id="ps-1" style="color:var(--text-secondary);">① PDF文本提取中...</div>
+                <div id="ps-2" style="color:var(--text-secondary);">② AI提炼建议并分类打标...</div>
+                <div id="ps-3" style="color:var(--text-secondary);">③ 可行性分析与RAG路由...</div>
+                <div id="ps-4" style="color:var(--text-secondary);">④ 初始化反馈记录...</div>
+            </div>
+            <div class="progress-bar" style="margin-top:16px;"><div class="progress-fill" id="process-progress" style="width:0%;"></div></div>
+        </div>
+    </div>`;
+
+    // Step 1
+    setTimeout(() => {
+        document.getElementById('upload-step1').className = 'pipeline-step active';
+        document.getElementById('ps-1').style.color = 'var(--primary)';
+        document.getElementById('ps-1').innerHTML = '① <strong>PDF文本提取</strong> — 正在解析 ' + fileName;
+        document.getElementById('process-progress').style.width = '25%';
+    }, 300);
+
+    // Step 1 完成 → Step 2
+    setTimeout(() => {
+        document.getElementById('upload-step1').className = 'pipeline-step done';
+        document.getElementById('ps-1').innerHTML = '① <strong style="color:var(--success);">PDF文本提取完成</strong> — 已提取 ${suggestions.length} 条建议';
+        document.getElementById('ps-1').style.color = 'var(--success)';
+        document.getElementById('upload-step2').className = 'pipeline-step active';
+        document.getElementById('ps-2').style.color = 'var(--primary)';
+        document.getElementById('ps-2').innerHTML = '② <strong>AI提炼建议并分类打标</strong> — 正在分析内容...';
+        document.getElementById('process-progress').style.width = '50%';
+    }, 1200);
+
+    // Step 2 完成 → Step 3
+    setTimeout(() => {
+        document.getElementById('upload-step2').className = 'pipeline-step done';
+        document.getElementById('ps-2').innerHTML = '② <strong style="color:var(--success);">分类打标完成</strong>';
+        document.getElementById('ps-2').style.color = 'var(--success)';
+        document.getElementById('upload-step3').className = 'pipeline-step active';
+        document.getElementById('ps-3').style.color = 'var(--primary)';
+        document.getElementById('ps-3').innerHTML = '③ <strong>可行性分析与RAG路由</strong> — 正在匹配知识库...';
+        document.getElementById('process-progress').style.width = '75%';
+    }, 2200);
+
+    // Step 3 完成 → Step 4
+    setTimeout(() => {
+        document.getElementById('upload-step3').className = 'pipeline-step done';
+        document.getElementById('ps-3').innerHTML = '③ <strong style="color:var(--success);">可行性分析完成</strong> — 已路由至 ' + (DEPT_ROUTE_MAP[dept] || dept);
+        document.getElementById('ps-3').style.color = 'var(--success)';
+        document.getElementById('upload-step4').className = 'pipeline-step active';
+        document.getElementById('ps-4').style.color = 'var(--primary)';
+        document.getElementById('ps-4').innerHTML = '④ <strong>初始化反馈记录</strong> — 创建追踪记录...';
+        document.getElementById('process-progress').style.width = '90%';
+    }, 3200);
+
+    // Step 4 完成 → 显示结果
+    setTimeout(() => {
+        document.getElementById('upload-step4').className = 'pipeline-step done';
+        document.getElementById('ps-4').innerHTML = '④ <strong style="color:var(--success);">反馈记录已初始化</strong>';
+        document.getElementById('ps-4').style.color = 'var(--success)';
+        document.getElementById('process-progress').style.width = '100%';
+
+        // 将新建议添加到全局数据
+        suggestions.forEach(s => MOCK_DATA.suggestions.push(s));
+
+        // 更新全局统计
+        MOCK_DATA.coverage.total += suggestions.length;
+        MOCK_DATA.coverage.pending += suggestions.length;
+        MOCK_DATA.coverage.coverage_rate = Math.round(MOCK_DATA.coverage.adopted / MOCK_DATA.coverage.total * 100 * 10) / 10;
+
+        // 更新 pipeline 数据
+        MOCK_DATA.pipeline.step1_summaries += 1;
+        MOCK_DATA.pipeline.step2_suggestions += suggestions.length;
+        MOCK_DATA.pipeline.step3_feasibility += suggestions.length;
+        MOCK_DATA.pipeline.step4_feedback_with_status += suggestions.length;
+
+        // 显示结果
+        resultDiv.innerHTML = `
+        <div class="card" style="border: 2px solid var(--success);">
+            <div class="card-title" style="color:var(--success);">✅ 四步闭环处理完成！</div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">文件: <strong>${fileName}</strong> | 呟工: ${name} | 部门: ${dept} | 类型: ${type} | 周期: ${period}</p>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-value">3</div><div class="stat-label">模拟页数</div></div>
+                <div class="stat-card success"><div class="stat-value">${suggestions.length}</div><div class="stat-label">提炼建议数</div></div>
+                <div class="stat-card primary"><div class="stat-value">4</div><div class="stat-label">闭环步骤</div></div>
+            </div>
+            <div style="margin-top:12px;">
+                <h4 style="font-size:14px; margin-bottom:8px; border-left:3px solid var(--primary); padding-left:8px;">提炼的建议：</h4>
+                ${suggestions.map(s => `
+                <div style="padding:10px 12px; background:var(--bg); border-radius:6px; margin-bottom:8px; border-left:3px solid var(--primary); cursor:pointer;" onclick="showSuggestionDetail('${s.id}')">
+                    <div style="display:flex; gap:6px; margin-bottom:4px;">
+                        <span class="tag type">${s.suggestion_type}</span>
+                        <span class="tag type">${s.suggestion_subtype}</span>
+                        <span class="tag emp">${s.employee_type}</span>
+                    </div>
+                    <div style="font-size:13px; line-height:1.5;">${s.original_text}</div>
+                    <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                        可行性: ${s.tech_feasibility} | 优先级: ${s.priority_score} | 路由: ${s.routed_dept}
+                    </div>
+                </div>`).join('')}
+            </div>
+            <div style="margin-top:16px; text-align:center;">
+                <button class="btn btn-primary" onclick="document.querySelectorAll('.nav-tab')[2].click(); loadSuggestions();">📋 查看建议列表</button>
+                <button class="btn btn-outline" onclick="document.querySelectorAll('.nav-tab')[3].click(); loadFeedback();">💬 查看反馈追踪</button>
+            </div>
+        </div>`;
+
+        document.getElementById('start-process-btn').disabled = false;
+        showToast('✅ 处理完成！已新增 ' + suggestions.length + ' 条建议');
+    }, 4200);
+});
+
+// ===== 建议列表 =====
+function loadSuggestions() {
+    const searchKeyword = document.getElementById('filter-search') ? document.getElementById('filter-search').value.trim().toLowerCase() : '';
+    const typeFilter = document.getElementById('filter-type').value;
+    const empTypeFilter = document.getElementById('filter-emp-type').value;
+    const statusFilter = document.getElementById('filter-status').value;
+
+    let data = [...MOCK_DATA.suggestions];
+    if (typeFilter) data = data.filter(s => s.suggestion_type === typeFilter);
+    if (empTypeFilter) data = data.filter(s => s.employee_type === empTypeFilter);
+    if (statusFilter) data = data.filter(s => s.adopt_status === statusFilter);
+    if (searchKeyword) {
+        data = data.filter(s =>
+            (s.original_text && s.original_text.toLowerCase().includes(searchKeyword)) ||
+            (s.employee_name && s.employee_name.toLowerCase().includes(searchKeyword)) ||
+            (s.dept && s.dept.toLowerCase().includes(searchKeyword)) ||
+            (s.suggestion_type && s.suggestion_type.toLowerCase().includes(searchKeyword)) ||
+            (s.suggestion_subtype && s.suggestion_subtype.toLowerCase().includes(searchKeyword)) ||
+            (s.landing_desc && s.landing_desc.toLowerCase().includes(searchKeyword)) ||
+            (s.effect_metrics && s.effect_metrics.toLowerCase().includes(searchKeyword))
+        );
+    }
+
+    if (!data || data.length === 0) {
+        document.getElementById('suggestions-list').innerHTML = '<div class="card"><p style="color:#5f6368; text-align:center;">暂无符合条件的建议数据</p></div>';
+        return;
+    }
+
+    document.getElementById('suggestions-list').innerHTML = data.map(s => `
+    <div class="suggestion-item" onclick="showSuggestionDetail('${s.id}')">
+        <div class="suggestion-header">
+            <div class="suggestion-meta">
+                <span class="tag type">${s.suggestion_type}</span>
+                <span class="tag emp">${s.employee_type}</span>
+                <span class="tag dept">${s.dept}</span>
+                ${s.adopt_status ? `<span class="tag status-${s.adopt_status === '已采纳' ? 'adopted' : s.adopt_status === '不可行' ? 'rejected' : s.adopt_status === '暂缓' ? 'pending' : 'pending'}">${s.adopt_status === 'pending' ? '待处理' : s.adopt_status}</span>` : ''}
+                ${s.priority_score ? `<span class="tag priority">优先级 ${s.priority_score}</span>` : ''}
+            </div>
+            <span style="font-size:12px; color:#5f6368;">${s.period} · P${s.page_number || ''}</span>
+        </div>
+        <div class="suggestion-text">${s.original_text.substring(0, 100)}${s.original_text.length > 100 ? '...' : ''}</div>
+        <div style="font-size:12px; color:#5f6368;">来源: ${s.employee_name} (${s.dept}) · ${s.suggestion_subtype || ''}</div>
+    </div>
+    `).join('');
+}
+
+function exportSuggestions() {
+    const data = MOCK_DATA.suggestions;
+    // 生成 CSV 文件（Excel 可直接打开）
+    const headers = ['建议ID','员工姓名','部门','员工类型','建议类型','建议子类型','建议原文','采纳状态','进展状态','落地措施','效果指标','可行性','优先级','路由部门','周期','页码'];
+    const rows = data.map(s => [
+        s.id, s.employee_name, s.dept, s.employee_type,
+        s.suggestion_type, s.suggestion_subtype || '',
+        '"' + (s.original_text || '').replace(/"/g, '""') + '"',
+        s.adopt_status || '待处理', s.progress_status || '',
+        '"' + (s.landing_desc || '').replace(/"/g, '""') + '"',
+        '"' + (s.effect_metrics || '').replace(/"/g, '""') + '"',
+        s.tech_feasibility || '', s.priority_score || '',
+        s.routed_dept || '', s.period, s.page_number || ''
+    ]);
+    const BOM = '\uFEFF'; // UTF-8 BOM，确保 Excel 正确识别中文
+    const csv = BOM + headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `北新思汇_建议导出_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('已导出 CSV 文件（可用 Excel 打开）');
+}
+
+function showSuggestionDetail(id) {
+    const data = MOCK_DATA.suggestions.find(s => s.id === id);
+    if (!data) return;
+
+    const hasFeasibility = data.tech_feasibility;
+    const hasFeedback = data.adopt_status && data.adopt_status !== 'pending';
+
+    const overlay = document.getElementById('detail-overlay');
+    const content = document.getElementById('detail-content');
+
+    content.innerHTML = `
+    <div style="margin-bottom:16px;">
+        <div class="detail-flow">
+            <div class="flow-node done">① 提炼</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node done">② 打标</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node ${hasFeasibility ? 'done' : 'current'}">③ 分析</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node ${hasFeedback ? 'done' : 'current'}">④ 反馈</div>
+        </div>
+    </div>
+    <div class="detail-section">
+        <h4>① 建议原文（提炼结果）</h4>
+        <p style="font-size:14px; line-height:1.6;">${data.original_text}</p>
+        <p style="font-size:12px; color:#5f6368; margin-top:8px;">来源: ${data.employee_name} · ${data.dept} · ${data.employee_type} · ${data.period} · 第${data.page_number}页</p>
+    </div>
+    <div class="detail-section">
+        <h4>② 分类打标</h4>
+        <div style="display:flex; gap:8px;">
+            <span class="tag type">${data.suggestion_type}</span>
+            <span class="tag type">${data.suggestion_subtype || '—'}</span>
+            <span class="tag emp">${data.employee_type}</span>
+        </div>
+    </div>
+    <div class="detail-section">
+        <h4>③ 可行性分析</h4>
+        ${hasFeasibility ? `
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div><span style="font-size:12px; color:#5f6368;">技术可行性:</span> <strong>${data.tech_feasibility}</strong></div>
+            <div><span style="font-size:12px; color:#5f6368;">优先级评分:</span> <strong>${data.priority_score}</strong></div>
+            <div><span style="font-size:12px; color:#5f6368;">成本评估:</span> ${data.cost_estimate || '—'}</div>
+            <div><span style="font-size:12px; color:#5f6368;">路由部门:</span> <strong>${data.routed_dept}</strong></div>
+        </div>
+        ` : '<p style="color:#5f6368;">尚未进行可行性分析</p>'}
+    </div>
+    <div class="detail-section">
+        <h4>④ 落地效果与反馈</h4>
+        <div class="feedback-form">
+            <div><span class="tag status-${data.adopt_status === '已采纳' ? 'adopted' : data.adopt_status === '不可行' ? 'rejected' : 'pending'}">${data.adopt_status}</span></div>
+            <div><span style="font-size:12px; color:#5f6368;">进展状态:</span> <strong>${data.progress_status || 'pending'}</strong></div>
+            ${data.landing_desc ? `<div style="font-size:14px;">落地措施: ${data.landing_desc}</div>` : ''}
+            ${data.effect_metrics ? `<div style="font-size:14px;">效果指标: ${data.effect_metrics}</div>` : ''}
+        </div>
+    </div>`;
+
+    overlay.classList.add('show');
+}
+
+function closeDetail() {
+    document.getElementById('detail-overlay').classList.remove('show');
+}
+
+// ===== 反馈追踪 =====
+function loadFeedback() {
+    const coverage = mockApi('/api/dashboard/coverage');
+    if (!coverage) return;
+
+    document.getElementById('feedback-stats').innerHTML = `
+        <div class="stat-card success"><div class="stat-value">${coverage.adopted}</div><div class="stat-label">已采纳</div></div>
+        <div class="stat-card primary"><div class="stat-value">${coverage.in_progress}</div><div class="stat-label">执行中</div></div>
+        <div class="stat-card warning"><div class="stat-value">${coverage.completed}</div><div class="stat-label">已完成</div></div>
+        <div class="stat-card danger"><div class="stat-value">${coverage.rejected}</div><div class="stat-label">不可行</div></div>
+    `;
+
+    const allFeedbackData = MOCK_DATA.suggestions.filter(s => s.adopt_status !== 'pending');
+    let filtered = allFeedbackData;
+
+    const groups = [
+        { key: 'adopted', label: '已采纳', icon: '✅', cls: 'adopted', statuses: ['已采纳'], emptyMsg: '暂无已采纳的建议' },
+        { key: 'in-progress', label: '执行中', icon: '🔄', cls: 'in-progress', statuses: ['暂缓'], emptyMsg: '暂无执行中的建议' },
+        { key: 'completed', label: '已完成', icon: '🏆', cls: 'completed', statuses: ['已完成'], emptyMsg: '暂无已完成的建议' },
+        { key: 'rejected', label: '不可行', icon: '❌', cls: 'rejected', statuses: ['不可行'], emptyMsg: '暂无不可行的建议' },
+    ];
+
+    // "已完成"也按 progress_status === '已完成' 来匹配
+    // 需要修正：数据中 adopt_status="已采纳" + progress_status="已完成" 的条目应出现在"已完成"分组中
+    // 重新定义分组逻辑：
+    const groupDefs = [
+        { key: 'adopted', label: '已采纳', icon: '✅', cls: 'adopted', match: s => s.adopt_status === '已采纳' && s.progress_status !== '已完成', emptyMsg: '暂无已采纳的建议' },
+        { key: 'in-progress', label: '执行中', icon: '🔄', cls: 'in-progress', match: s => s.adopt_status === '暂缓', emptyMsg: '暂无执行中的建议' },
+        { key: 'completed', label: '已完成', icon: '🏆', cls: 'completed', match: s => s.adopt_status === '已采纳' && s.progress_status === '已完成', emptyMsg: '暂无已完成的建议' },
+        { key: 'rejected', label: '不可行', icon: '❌', cls: 'rejected', match: s => s.adopt_status === '不可行', emptyMsg: '暂无不可行的建议' },
+    ];
+
+    const container = document.getElementById('feedback-status-groups');
+    let html = '';
+
+    groupDefs.forEach(group => {
+        const items = filtered.filter(group.match)
+            .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+        const count = items.length;
+
+        html += `
+        <div class="status-group ${group.cls}" id="sg-${group.key}">
+            <div class="status-group-header" onclick="toggleStatusGroup('${group.key}')">
+                <div>
+                    <span class="sg-icon">${group.icon}</span>
+                    <span class="sg-label">${group.label}</span>
+                    <span class="sg-count">${count} 条</span>
+                </div>
+                <span class="sg-arrow">▶</span>
+            </div>
+            <div class="status-group-body">
+                ${count === 0 ? `<p style="color:#5f6368; text-align:center; padding:12px;">${group.emptyMsg}</p>` :
+                items.map(s => `
+                <div class="status-group-item" onclick="showSuggestionDetail('${s.id}')">
+                    <div class="sgi-meta">
+                        <span class="tag type">${s.suggestion_type}</span>
+                        <span class="tag emp">${s.employee_type}</span>
+                        <span class="tag dept">${s.routed_dept || s.dept}</span>
+                        <span style="font-size:11px; color:#5f6368;">${s.employee_name} · ${s.period}</span>
+                    </div>
+                    <div class="sgi-text">${s.original_text.substring(0, 120)}${s.original_text.length > 120 ? '...' : ''}</div>
+                    ${s.landing_desc ? `<div class="sgi-landing">落地措施: ${s.landing_desc.substring(0, 80)}${s.landing_desc.length > 80 ? '...' : ''}</div>` : ''}
+                    ${s.effect_metrics ? `<div style="font-size:12px; color:var(--primary); margin-top:2px;">效果: ${s.effect_metrics}</div>` : ''}
+                </div>`).join('')}
+            </div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+function toggleStatusGroup(key) {
+    document.getElementById('sg-' + key).classList.toggle('expanded');
+}
+
+// ===== 初始化 =====
+document.addEventListener('DOMContentLoaded', () => { loadDashboard(); });
+</script>
+</body>
+</html>
